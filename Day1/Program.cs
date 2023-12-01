@@ -1,6 +1,4 @@
-﻿// See https://aka.ms/new-console-template for more information
-
-using System.Text;
+﻿
 
 var fileName = "C:\\code\\advent-of-code-2023\\Day1\\input.txt";
 
@@ -20,27 +18,66 @@ var numbersAsString = new Dictionary<string, string>
     {"nine", "9"}
 };
 
-var sum = 0;
-var stringb = new StringBuilder();
-foreach (var line in lines)
-{
-    var t = line.Where(numbers.Contains).Aggregate(stringb, (seed, x) => seed.Append(x)).ToString();
+//Part 1 
+// var sum = 0;
+// var stringb = new StringBuilder();
+// foreach (var line in lines)
+// {
+//     var t = line.Where(numbers.Contains).Aggregate(stringb, (seed, x) => seed.Append(x)).ToString();
+//
+//     switch (t.Length)
+//     {
+//         case > 2:
+//             t = t.First().ToString() + t.Last();
+//             break;
+//         case 1:
+//             t += t;
+//             break;
+//     }
+//     
+//     stringb.Clear();
+//     sum += int.Parse(t);
+//     ;
+// }
+//
 
-    switch (t.Length)
+//Part 2
+    var sum = 0;
+    var characters = new List<char>();
+    var listOfNumbers = new List<int>();
+
+    foreach (var line in lines)
     {
-        case > 2:
-            t = t.First().ToString() + t.Last();
-            break;
-        case 1:
-            t += t;
-            break;
-    }
-    
-    stringb.Clear();
-    sum += int.Parse(t);
-    ;
-}
+     
+        foreach (var cha in line)
+        {
+            if (char.IsDigit(cha))
+            {
+                listOfNumbers.Add(int.Parse(cha.ToString()));
+                characters.Clear();
+            }
+            else
+            {
+                characters.Add(cha);
+                var myString = new string(characters.ToArray());
 
+
+                var match = numbersAsString.Keys.SingleOrDefault(x => myString.Contains(x));
+                if(match != null)
+                {
+                    var num = numbersAsString[match];
+                
+                    listOfNumbers.Add(int.Parse(num));
+                    characters = characters.Slice(characters.Count - 1, 1);
+
+                }
+            }
+            
+        }
+
+        sum += int.Parse(listOfNumbers.First().ToString() + listOfNumbers.Last());
+        listOfNumbers.Clear();
+    }
 
 
 
