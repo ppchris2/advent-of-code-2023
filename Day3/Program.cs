@@ -33,7 +33,8 @@ foreach (var line in allLines)
             specialChars.Add(new SpecialChar
             {
                 Line = lineCount,
-                Position = i
+                Position = i,
+                Chara = cha
             });
             
             var tt = new Num
@@ -77,8 +78,34 @@ foreach( var line in Enumerable.Range(0, allLines.Length))
         ).Where(x =>
             !x.HasBeenUsed))
         {
-            t.ChangeHasBeenUsed();
+            //for part 2
+            //t.ChangeHasBeenUsed();
             sum += t.Value;
+        }
+    }
+}
+Console.WriteLine(sum);
+
+//part 2
+sum = 0;
+foreach( var line in Enumerable.Range(0, allLines.Length))
+{
+    foreach(var possibleGear in specialChars.Where(x => x.Line == line && x.Chara == '*'))
+    {
+        var t = numberPositions.Where(x =>
+            x.Line == possibleGear.Line ||
+            x.Line == possibleGear.Line - 1 ||
+            x.Line == possibleGear.Line + 1
+        ).Where(x =>
+            x.Positions.Any(y => possibleGear.Position == y || 
+                                 possibleGear.Position - 1 == y || 
+                                 possibleGear.Position + 1 == y)
+        ).Where(x => !x.HasBeenUsed).ToArray();
+
+        if (t.Length == 2)
+        {
+            sum += t[0].Value * t[1].Value;
+            
         }
     }
 }
@@ -103,4 +130,5 @@ struct SpecialChar
 {
     public int Position { get; set; }
     public int Line { get; set; }
+    public char Chara { get; set; }
 }
