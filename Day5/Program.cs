@@ -1,8 +1,11 @@
-﻿var lines = File.ReadAllLines("C:\\code\\advent-of-code-2023\\Day5\\input.txt");
+﻿using System.Collections;
+using System.Collections.Concurrent;
 
-var seeds = new List<uint>();
+var lines = File.ReadAllLines("C:\\code\\advent-of-code-2023\\Day5\\example.txt");
 
-seeds.AddRange(lines[0].Split(' ').Where(x => x.All(char.IsDigit)).Select(uint.Parse));
+// var seeds = new List<uint>();
+//
+// seeds.AddRange(lines[0].Split(' ').Where(x => x.All(char.IsDigit)).Select(uint.Parse));
 
 var previousLineCount = 0;
 var seedToSoil = Array.Empty<Map>();
@@ -59,33 +62,45 @@ while (previousLineCount + 1 != lines.Length)
 }
 
 var lowest = uint.MaxValue;
-foreach (var seed in seeds)
-{
-    Console.WriteLine($"Searching seed {seed}");
 
-    var soil = Get(seedToSoil, seed);
-    var fert = Get(soiToFertilizer,soil);
-    var water = Get(fertilizerToWater,fert);
-    var light = Get(waterToLight, water);
-    var temp = Get(lightToTempruture, light);
-    var hum = Get(tempToHumidity, temp);
-    var loc = Get(humToLocation, hum);
+var list = new ConcurrentBag<uint>();
 
-    if (loc < lowest)
+Parallel.ForEach(lines[0].Split(' ').Where(x => x.All(char.IsDigit)).Select(uint.Parse).Chunk(2).ToArray(), 
+    new ParallelOptions { MaxDegreeOfParallelism = 10 },
+    
+    seedRange =>
     {
-        lowest = loc;
-    }
+        var t = Enumerable.Range(seedRange[0], seedRange[1]).ToArray();
+        Console.WriteLine($"Searching seed range {t.Length}");
 
-}
-Console.WriteLine(lowest)
-;
+        foreach (var seed in t)
+        {
+            
+            var soil = Get(seedToSoil, seed);
+            var fert = Get(soiToFertilizer,soil);
+            var water = Get(fertilizerToWater,fert);
+            var light = Get(waterToLight, water);
+            var temp = Get(lightToTempruture, light);
+            var hum = Get(tempToHumidity, temp);
+            var loc = Get(humToLocation, hum);
+
+            if (loc < lowest)
+            {
+                lowest = loc;
+                list.Add(loc);
+            }
+
+    }
+});
+
+Console.WriteLine("min "  + list.Min());
+
 uint Get(Map[] maps, uint i)
 {
     foreach (var map in maps)
     {
         if (map.Contains(i))
         {
-            Console.WriteLine("Found one val");
             return map[i];
         }
     }
@@ -109,25 +124,15 @@ struct Map
 
     public bool Contains(uint i)
     {
-        return RangeOfSource >= i && Source < i;
+        return RangeOfSource > i && Source <= i;
     }
     public uint this[uint i]
     {
         get
         {
-            var dest = Enumerable.Range(Destination, Range);
-            var src = Enumerable.Range(Source, Range);
-            var dict = src.Zip(dest);
-            try
-            {
-                return dict.First(x => x.First == i).Second;
-
-            }
-            catch
-            {
-                Console.WriteLine($"Seed {i} said was in {Source} in range {Range}");
-                return i;
-            }
+            var stepsNeeded = i - Source;
+            var dest = Destination + stepsNeeded;
+            return dest;
         }
     }
 }
@@ -140,5 +145,10 @@ public static class Enumerable {
         }
     }
 }
+
+
+
+
+
 
 
