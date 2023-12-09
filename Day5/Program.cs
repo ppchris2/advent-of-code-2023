@@ -1,11 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
 
-var lines = File.ReadAllLines("C:\\code\\advent-of-code-2023\\Day5\\example.txt");
-
-// var seeds = new List<uint>();
-//
-// seeds.AddRange(lines[0].Split(' ').Where(x => x.All(char.IsDigit)).Select(uint.Parse));
+var lines = File.ReadAllLines("C:\\Users\\ppchr\\Source\\Repos\\advent-of-code-2023\\Day5\\input.txt");
 
 var previousLineCount = 0;
 var seedToSoil = Array.Empty<Map>();
@@ -25,7 +21,7 @@ while (previousLineCount + 1 != lines.Length)
         .Skip(1)
         .Select(line => line
             .Split(' ')
-            .Select(uint.Parse)
+            .Select(long.Parse)
             .ToArray())
         .Select(split => new Map(split[0], split[1], split[2]))
         .ToArray();
@@ -61,17 +57,18 @@ while (previousLineCount + 1 != lines.Length)
     
 }
 
-var lowest = uint.MaxValue;
+var list = new ConcurrentBag<long>();
+var i = 0;
 
-var list = new ConcurrentBag<uint>();
-
-Parallel.ForEach(lines[0].Split(' ').Where(x => x.All(char.IsDigit)).Select(uint.Parse).Chunk(2).ToArray(), 
+Parallel.ForEach(lines[0].Split(' ').Where(x => x.All(char.IsDigit)).Select(long.Parse).Chunk(2).ToArray(), 
     new ParallelOptions { MaxDegreeOfParallelism = 10 },
     
     seedRange =>
     {
-        var t = Enumerable.Range(seedRange[0], seedRange[1]).ToArray();
-        Console.WriteLine($"Searching seed range {t.Length}");
+        var t = Enumerable.Range(seedRange[0], seedRange[1]);
+        var lowest = long.MaxValue;
+
+        Console.WriteLine($"Searching seed range");
 
         foreach (var seed in t)
         {
@@ -87,15 +84,17 @@ Parallel.ForEach(lines[0].Split(' ').Where(x => x.All(char.IsDigit)).Select(uint
             if (loc < lowest)
             {
                 lowest = loc;
-                list.Add(loc);
+                //insideList.Add(loc);
             }
-
-    }
-});
+        }
+        Console.WriteLine($"Found seed for range {i++}");
+        //prev 39477886
+        list.Add(lowest);
+    });
 
 Console.WriteLine("min "  + list.Min());
 
-uint Get(Map[] maps, uint i)
+long Get(Map[] maps, long i)
 {
     foreach (var map in maps)
     {
@@ -110,23 +109,23 @@ uint Get(Map[] maps, uint i)
 
 struct Map
 {
-    public uint Destination { get; set; }
-    public uint Source { get; set; }
-    public uint Range { get; set; }
+    public long Destination { get; set; }
+    public long Source { get; set; }
+    public long Range { get; set; }
 
-    private uint RangeOfSource => Source + Range;
-    public Map(uint destination, uint source, uint range)
+    private long RangeOfSource => Source + Range;
+    public Map(long destination, long source, long range)
     {
         Destination = destination;
         Source = source;
         Range = range;
     }
 
-    public bool Contains(uint i)
+    public bool Contains(long i)
     {
         return RangeOfSource > i && Source <= i;
     }
-    public uint this[uint i]
+    public long this[long i]
     {
         get
         {
@@ -138,7 +137,7 @@ struct Map
 }
 
 public static class Enumerable {
-    public static IEnumerable<uint> Range(uint start, uint count) {
+    public static IEnumerable<long> Range(long start, long count) {
         var end = start + count;
         for(var current = start; current < end; ++current) {
             yield return current;
